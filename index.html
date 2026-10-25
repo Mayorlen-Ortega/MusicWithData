@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulsar Acoustics | Laboratorio de Sonificación Cósmica con Tone.js</title>
+    <meta name="description" content="Maqueta interactiva de sonificación de pulsares utilizando datos astronómicos reales y el motor de síntesis de audio Tone.js.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Space+Grotesk:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Tone.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    
+    <link rel="stylesheet" href="style.css?v=8">
+</head>
+<body>
+    <!-- Fondo estelar animado -->
+    <div class="space-background" id="spaceBackground"></div>
+    <div class="ambient-glow"></div>
+
+    <div class="app-layout">
+        <!-- Encabezado Principal -->
+        <header class="app-header">
+            <div class="header-branding">
+                <div class="logo-orb">
+                    <span class="pulsar-dot"></span>
+                    <span class="pulsar-wave"></span>
+                </div>
+                <div>
+                    <h1 class="main-title">PULSAR ACOUSTICS <span class="badge-tag">LAB v1.0</span></h1>
+                    <p class="subtitle">Laboratorio de Sonificación Cósmica con Datos Astronómicos Reales &amp; Tone.js</p>
+                </div>
+            </div>
+
+            <!-- Master Audio Switch & Status -->
+            <div class="header-controls">
+                <div class="audio-status-pill" id="audioStatusPill">
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    <span id="audioStatusText">Audio: En espera (Requiere activación)</span>
+                </div>
+                <button id="btnInitAudio" class="btn btn-primary glow-button">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                    </svg>
+                    <span>Activar Audio Tone.js</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Cuadrícula Principal -->
+        <main class="main-grid">
+            <!-- Columna Izquierda: Catálogo de Pulsares -->
+            <section class="panel catalog-panel" aria-labelledby="catalogHeading">
+                <div class="panel-header">
+                    <div class="panel-title-wrapper">
+                        <span class="panel-icon">📡</span>
+                        <h2 id="catalogHeading" class="panel-title">Pulsares Disponibles</h2>
+                    </div>
+                    <span class="badge-count" id="pulsarCountBadge">4 Púlsares</span>
+                </div>
+                <p class="panel-description">
+                    Selecciona un púlsar para cargar su telemetría real y explorar su comportamiento acústico.
+                </p>
+
+                <div class="pulsar-cards-container" id="pulsarCardsContainer">
+                    <!-- Se inyectarán dinámicamente desde pulsarData.json -->
+                </div>
+
+                <!-- Info didáctica plegable sobre pulsares -->
+                <details class="info-callout">
+                    <summary class="callout-title">💡 ¿Qué es un Púlsar? (Info)</summary>
+                    <p>Estrella de neutrones ultra-densa en rápida rotación que barre rayos electromagnéticos como un faro cósmico. Su período marca el ritmo de sonificación.</p>
+                </details>
+            </section>
+
+            <!-- Columna Central: Observatorio Visual & Osciloscopio -->
+            <section class="panel observatory-panel" aria-labelledby="observatoryHeading">
+                <div class="panel-header">
+                    <div class="panel-title-wrapper">
+                        <span class="panel-icon">🔭</span>
+                        <h2 id="observatoryHeading" class="panel-title">Observatorio &amp; Visualizador en Tiempo Real</h2>
+                    </div>
+                    <div class="observatory-meta" id="currentPulsarDisplay">
+                        PSR B0531+21 (Crab)
+                    </div>
+                </div>
+
+                <!-- Canvas de la estrella de neutrones y su haz relativista -->
+                <div class="canvas-wrapper">
+                    <canvas id="pulsarCanvas" width="600" height="340"></canvas>
+                    <div class="canvas-overlay-stats">
+                        <div class="stat-badge">
+                            <span class="stat-lbl">Período:</span>
+                            <span class="stat-val" id="hudPeriod">0.0331 s</span>
+                        </div>
+                        <div class="stat-badge">
+                            <span class="stat-lbl">Frecuencia:</span>
+                            <span class="stat-val" id="hudFreq">30.21 Hz</span>
+                        </div>
+                        <div class="stat-badge">
+                            <span class="stat-lbl">RPM:</span>
+                            <span class="stat-val" id="hudRpm">1,812 rpm</span>
+                        </div>
+                        <div class="stat-badge">
+                            <span class="stat-lbl">Ratio:</span>
+                            <span class="stat-val" id="hudRatio">1x</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Osciloscopio / Analizador de audio Tone.js -->
+                <div class="waveform-container">
+                    <div class="waveform-header">
+                        <span class="waveform-label">Osciloscopio Acústico (Tone.Waveform)</span>
+                        <span class="waveform-state" id="waveformStatus">Señal Inactiva</span>
+                    </div>
+                    <canvas id="waveformCanvas" width="600" height="100"></canvas>
+                </div>
+
+                <!-- Barra de Transporte / Playback -->
+                <div class="playback-bar">
+                    <div class="playback-controls">
+                        <button id="btnPlayPause" class="btn btn-playback" disabled title="Iniciar/Pausar Sonificación">
+                            <svg id="playIcon" class="playback-svg" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                            <svg id="pauseIcon" class="playback-svg hidden" viewBox="0 0 24 24" fill="currentColor">
+                                <rect x="6" y="4" width="4" height="16"></rect>
+                                <rect x="14" y="4" width="4" height="16"></rect>
+                            </svg>
+                            <span id="playPauseText">Reproducir Sonificación</span>
+                        </button>
+
+                        <button id="btnMute" class="btn btn-secondary" disabled title="Silenciar">
+                            <span id="muteIcon">🔊</span>
+                        </button>
+                    </div>
+
+                    <!-- Escala de Tiempo (Time Warp) -->
+                    <div class="time-warp-control">
+                        <div class="time-warp-header">
+                            <label for="speedSlider" class="control-label">
+                                Factor de Tiempo: <span id="speedValue" class="value-highlight">1.0x (Real)</span>
+                            </label>
+                            <div class="warp-presets">
+                                <button type="button" class="btn-preset active" data-speed="1.0">1x Real</button>
+                                <button type="button" class="btn-preset" data-speed="0.1">0.1x</button>
+                                <button type="button" class="btn-preset" data-speed="0.01">0.01x</button>
+                            </div>
+                        </div>
+                        <input type="range" id="speedSlider" min="0.01" max="2.0" step="0.01" value="1.0" class="custom-slider">
+                        <div class="slider-marks">
+                            <span>0.01x (Super Lenta)</span>
+                            <span>0.1x</span>
+                            <span>1.0x (Real)</span>
+                            <span>2.0x</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Columna Derecha: Laboratorio de Mapeo Sonoro -->
+            <section class="panel mapping-panel" aria-labelledby="mappingHeading">
+                <div class="panel-header">
+                    <div class="panel-title-wrapper">
+                        <span class="panel-icon">🎛️</span>
+                        <h2 id="mappingHeading" class="panel-title">Mapeo Sonoro (Tone.js)</h2>
+                    </div>
+                    <span class="mode-tag" id="currentModeTag">Modo: Radioastronómico</span>
+                </div>
+                
+                <div class="mapping-scroll-area">
+                    <p class="panel-description">
+                        Prueba diferentes estrategias sonoras para traducir los datos físicos del púlsar a parámetros acústicos:
+                    </p>
+
+                    <!-- Selectores de Modo de Sonificación -->
+                    <div class="sonification-modes" role="radiogroup" aria-label="Modos de Sonificación">
+                        <label class="mode-option active" id="modeOption1">
+                            <input type="radio" name="sonificationMode" value="radio" checked>
+                            <div class="mode-card-content">
+                                <div class="mode-title-row">
+                                    <span class="mode-name">1. Radioastronomía Clásica</span>
+                                    <span class="badge-mini">Recomendado</span>
+                                </div>
+                                <p class="mode-details">
+                                    Clics y pulsos de ruido percusivo (similar al sonido real de radiotelescopio). El período determina la cadencia rítmica.
+                                </p>
+                            </div>
+                        </label>
+
+                        <label class="mode-option" id="modeOption2">
+                            <input type="radio" name="sonificationMode" value="drone">
+                            <div class="mode-card-content">
+                                <div class="mode-title-row">
+                                    <span class="mode-name">2. Tono Continuo (Frecuencia)</span>
+                                    <span class="badge-mini">Sintético</span>
+                                </div>
+                                <p class="mode-details">
+                                    Traduce la frecuencia Hz de rotación directamente a altura de tono (pitch). Se aplica octavación en pulsares infrasónicos.
+                                </p>
+                            </div>
+                        </label>
+
+                        <label class="mode-option" id="modeOption3">
+                            <input type="radio" name="sonificationMode" value="musical">
+                            <div class="mode-card-content">
+                                <div class="mode-title-row">
+                                    <span class="mode-name">3. Intervalo Musical &amp; Escala</span>
+                                    <span class="badge-mini">Armónico</span>
+                                </div>
+                                <p class="mode-details">
+                                    Utiliza el intervalo temporal acoplado al Tone.Transport para crear patrones armónicos cósmicos.
+                                </p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Sliders de Modulación en Tiempo Real -->
+                    <div class="dsp-controls-box">
+                        <h3 class="dsp-box-title">Moduladores Acústicos del Espacio</h3>
+
+                        <!-- Reverberación (Distancia Kpc) -->
+                        <div class="control-row">
+                            <div class="control-label-wrapper">
+                                <label for="reverbSlider">Reverberación Cósmica (Distancia)</label>
+                                <span id="reverbValue" class="value-highlight">2.0 Kpc (45%)</span>
+                            </div>
+                            <input type="range" id="reverbSlider" min="0" max="1" step="0.05" value="0.45" class="custom-slider">
+                        </div>
+
+                        <!-- Filtro Pasa-bajos (Dispersión interestelar) -->
+                        <div class="control-row">
+                            <div class="control-label-wrapper">
+                                <label for="filterSlider">Filtro de Dispersión (Lowpass)</label>
+                                <span id="filterValue" class="value-highlight">2500 Hz</span>
+                            </div>
+                            <input type="range" id="filterSlider" min="200" max="8000" step="50" value="2500" class="custom-slider">
+                        </div>
+
+                        <!-- Resonancia / Timbre -->
+                        <div class="control-row">
+                            <div class="control-label-wrapper">
+                                <label for="resonanceSlider">Armónicos / Resonancia</label>
+                                <span id="resonanceValue" class="value-highlight">3.0 Q</span>
+                            </div>
+                            <input type="range" id="resonanceSlider" min="0.5" max="10" step="0.5" value="3.0" class="custom-slider">
+                        </div>
+                    </div>
+
+                    <!-- Bloque Pedagógico de Código Tone.js -->
+                    <div class="tone-code-inspector">
+                        <div class="inspector-header">
+                            <span class="inspector-title">⚡ Código Tone.js Activo</span>
+                            <span class="inspector-badge">En vivo</span>
+                        </div>
+                        <pre class="code-block" id="toneCodePreview"><code>// Inicializando cadena de síntesis Tone.js...</code></pre>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Pie de página con guía para próximas decisiones -->
+        <footer class="app-footer">
+            <div class="footer-content">
+                <div class="footer-item">
+                    <span class="footer-icon">🌌</span>
+                    <span><strong>Proyecto Sonificación:</strong> Púlsar Data ➔ Mapeo Acústico ➔ Tone.js Synth Engine</span>
+                </div>
+                <div class="footer-item">
+                    <span class="footer-icon">📝</span>
+                    <span>Próximo paso: Definir asignación personalizada de timbre, envolvente y escala según tu preferencia sonora.</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Script principal -->
+    <script src="app.js?v=8"></script>
+</body>
+</html>

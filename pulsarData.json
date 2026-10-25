@@ -1,0 +1,56 @@
+[
+    {
+        "id": "psr-b0531-21",
+        "name": "PSR B0531+21",
+        "commonName": "Crab Pulsar (Púlsar del Cangrejo)",
+        "periodSeconds": 0.0331,
+        "frequencyHz": 30.21,
+        "distanceKpc": 2.0,
+        "constellation": "Taurus"
+    },
+    {
+        "id": "psr-b0833-45",
+        "name": "PSR B0833-45",
+        "commonName": "Vela Pulsar (Púlsar de Vela)",
+        "periodSeconds": 0.0893,
+        "frequencyHz": 11.20,
+        "distanceKpc": 0.287,
+        "constellation": "Vela"
+    },
+    {
+        "id": "psr-b1919-21",
+        "name": "PSR B1919+21",
+        "commonName": "El primer púlsar descubierto (LGM-1)",
+        "periodSeconds": 1.3373,
+        "frequencyHz": 0.747,
+        "distanceKpc": 0.7,
+        "constellation": "Vulpecula"
+    },
+    {
+        "id": "psr-j1748-2446ad",
+        "name": "PSR J1748-2446ad",
+        "commonName": "Púlsar milisegundo ultrarrápido",
+        "periodSeconds": 0.001395,
+        "frequencyHz": 716.0,
+        "distanceKpc": 5.5,
+        "constellation": "Sagittarius"
+    },
+    {
+        "id": "psr-b1257-12",
+        "name": "PSR B1257+12",
+        "commonName": "Lich (Púlsar con el primer sistema exoplanetario)",
+        "periodSeconds": 0.0062185,
+        "frequencyHz": 160.82,
+        "distanceKpc": 0.710,
+        "constellation": "Virgo"
+    },
+    {
+        "id": "psr-j0737-3039a",
+        "name": "PSR J0737-3039A",
+        "commonName": "Sistema de doble púlsar (Pulsar A)",
+        "periodSeconds": 0.022699,
+        "frequencyHz": 44.05,
+        "distanceKpc": 1.15,
+        "constellation": "Puppis"
+    }
+]
